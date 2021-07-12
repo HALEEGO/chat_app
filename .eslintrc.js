@@ -28,10 +28,22 @@ module.exports = {
       },
     ],
     'arrow-parens': ['error', 'always'],
+    'import/no-unresolved': 'off',
+    'import/extensions': [
+      'error',
+      'ignorePackages',
+      {
+        js: 'never',
+        jsx: 'never',
+        ts: 'never',
+        tsx: 'never',
+      },
+    ],
   },
   settings: {
     react: {
       version: 'detect',
     },
+    'import/resolver': { node: { extensions: ['.js', '.jsx', '.ts', '.tsx'] } },
   },
 };
