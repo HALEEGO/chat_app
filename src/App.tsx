@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
-import * as StompJs from '@stomp/stompjs';
+import Stomp from 'stompjs';
+import SockJS from 'sockjs-client';
 
-const client = new StompJs.Client({
-  brokerURL: '/gs-guide-websocket',
-  reconnectDelay: 5000,
-  heartbeatIncoming: 4000,
-  heartbeatOutgoing: 4000,
-});
+const sockJS = new SockJS('http://localhost:8080/gs-guide-websocket');
+const stompClient = Stomp.over(sockJS);
+stompClient.debug = () => {};
 
 // const { Stomp } = StompJs;
 // client.onConnect = (frame) => {
@@ -14,7 +12,7 @@ const client = new StompJs.Client({
 // };
 
 const App = () => {
-  const [chatMessages, setChatMessages] = useState([]);
+  const [chatMessages, setChatMessages] = useState(['hello', 'nice']);
   const [message, setMessage] = useState('');
 
   // const subscribe = () => {
@@ -64,14 +62,16 @@ const App = () => {
   // }, []);
 
   function onConnect() {
-    // eslint-disable-next-line no-unused-vars
-    const subscription = client.subscribe('/topic/greetings', (greeting) => {
-      setChatMessages(JSON.parse(greeting.body).content);
+    stompClient.connect({}, () => {
+      stompClient.subscribe('/topic/greetings', (greeting) => {
+        const newMessage = JSON.parse(greeting.body);
+        setChatMessages((prev) => [...prev, newMessage]);
+      });
     });
   }
 
   function sendName() {
-    client.publish({ destination: '/app/hello', body: JSON.stringify(message) });
+    stompClient.send('/app/hello', {}, JSON.stringify({ name: { message } }));
   }
 
   return (
