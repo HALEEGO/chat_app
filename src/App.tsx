@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 import Stomp from 'stompjs';
 import SockJS from 'sockjs-client';
 
+// const { Stomp } = StompJs;
+// client.onConnect = (frame) => {
+//   let client = Stomp.over(() => new WebSocket('/gs-guide-websocket'));
+// };
 let stompClient: Stomp.Client;
 
 const App = () => {
@@ -10,13 +14,13 @@ const App = () => {
   const [isConnect, setConnect] = useState(false);
 
   function onConnect() {
-    const sockJS = new SockJS('http://localhost:8080/gs-guide-websocket');
+    const sockJS = new SockJS('http://localhost:8080/chat');
     stompClient = Stomp.over(sockJS);
     setConnect(true);
   }
 
   function sendName() {
-    stompClient.send('/app/hello', {}, JSON.stringify({ name: message }));
+    stompClient.send('/app/hello', {}, message);
   }
 
   useEffect(() => {
@@ -24,11 +28,9 @@ const App = () => {
       return;
     }
     stompClient.connect({}, () => {
-      stompClient.subscribe('/topic/greetings', (greeting: any) => {
-        const newMessage = JSON.parse(greeting.body);
-        let a: string = newMessage.content;
-        a = a.replace(',"', '');
-        setChatMessages((prev) => [...prev, JSON.stringify(a)]);
+      stompClient.subscribe('/topic/greetings', (greeting) => {
+        const newMessage = greeting.body;
+        setChatMessages((prev) => [...prev, newMessage]);
       });
     });
   }, [chatMessages, isConnect]);
