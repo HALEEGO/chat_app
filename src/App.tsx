@@ -1,78 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Stomp from 'stompjs';
 import SockJS from 'sockjs-client';
-
-const sockJS = new SockJS('http://localhost:8080/gs-guide-websocket');
-const stompClient = Stomp.over(sockJS);
-stompClient.debug = () => {};
-
-// const { Stomp } = StompJs;
-// client.onConnect = (frame) => {
-//   let client = Stomp.over(() => new WebSocket('/gs-guide-websocket'));
-// };
 
 const App = () => {
   const [chatMessages, setChatMessages] = useState(['hello', 'nice']);
   const [message, setMessage] = useState('');
+  const [connect, setConnect] = useState(false);
 
-  // const subscribe = () => {
-  //   client.current.subscribe(`/sub/chat/${ROOM_SEQ}`, ({ body }) => {
-  //     setChatMessages((_chatMessages) => [..._chatMessages, JSON.parse(body)]);
-  //   });
-  // };
-  // const connect = () => {
-  //   client.current = new StompJs.Client({
-  //     // brokerURL: 'ws://localhost:8080/gs-guide-websocket', // 웹소켓 서버로 직접 접속
-  //     webSocketFactory: () => new SockJS('/ws-stomp'), // proxy를 통한 접속
-  //     connectHeaders: {
-  //       'auth-token': 'spring-chat-auth-token',
-  //     },
-  //     reconnectDelay: 5000,
-  //     heartbeatIncoming: 4000,
-  //     heartbeatOutgoing: 4000,
-  //     onConnect: () => {
-  //       subscribe();
-  //     },
-  //   });
-
-  //   client.current.activate();
-  // };
-
-  // const disconnect = () => {
-  //   client.current.deactivate();
-  // };
-
-  // const publish = (message) => {
-  //   if (!client.current.connected) {
-  //     return;
-  //   }
-
-  //   client.current.publish({
-  //     destination: '/pub/chat',
-  //     body: JSON.stringify({ roomSeq: ROOM_SEQ, message }),
-  //   });
-
-  //   setMessage('');
-  // };
-
-  // useEffect(() => {
-  //   connect();
-
-  //   return () => disconnect();
-  // }, []);
+  let stompClient: Stomp.Client;
 
   function onConnect() {
-    stompClient.connect({}, () => {
-      stompClient.subscribe('/topic/greetings', (greeting) => {
-        const newMessage = JSON.parse(greeting.body);
-        setChatMessages((prev) => [...prev, newMessage]);
-      });
-    });
+    const sockJS = new SockJS('http://localhost:8080/gs-guide-websocket');
+    stompClient = Stomp.over(sockJS);
+    setConnect(true);
   }
 
   function sendName() {
-    stompClient.send('/app/hello', {}, JSON.stringify({ name: { message } }));
+    stompClient.send('/app/hello', {}, JSON.stringify({ name: message }));
   }
+
+  useEffect(() => {
+    if (!connect) {
+      return;
+    }
+    stompClient.connect({}, () => {
+      stompClient.subscribe('/topic/greetings', (greeting: any) => {
+        const newMessage = JSON.parse(greeting.body);
+        let a: string = newMessage.content;
+        a = a.replace(',"', '');
+        setChatMessages((prev) => [...prev, JSON.stringify(a)]);
+      });
+    });
+  }, [chatMessages, connect]);
 
   return (
     <div>
@@ -82,19 +41,13 @@ const App = () => {
             type="button"
             onClick={() => {
               onConnect();
-              console.log('hello');
             }}
           >
             connect
           </button>
         </li>
         <li>
-          <button
-            type="button"
-            onClick={() => {
-              console.log('bye');
-            }}
-          >
+          <button type="button" onClick={() => {}}>
             disconnect
           </button>
         </li>
@@ -113,8 +66,9 @@ const App = () => {
       </div>
       <div>출력화면</div>
       <ul>
-        {chatMessages.map((result) => (
-          <li>{result}</li>
+        {chatMessages.map((result, i) => (
+          // eslint-disable-next-line react/no-array-index-key
+          <li key={i}>{result}</li>
         ))}
       </ul>
     </div>
