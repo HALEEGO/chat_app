@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import Stomp from 'stompjs';
 import SockJS from 'sockjs-client';
 
+let stompClient: Stomp.Client;
+
 const App = () => {
   const [chatMessages, setChatMessages] = useState(['hello', 'nice']);
   const [message, setMessage] = useState('');
-  const [connect, setConnect] = useState(false);
-
-  let stompClient: Stomp.Client;
+  const [isConnect, setConnect] = useState(false);
 
   function onConnect() {
     const sockJS = new SockJS('http://localhost:8080/gs-guide-websocket');
@@ -20,7 +20,7 @@ const App = () => {
   }
 
   useEffect(() => {
-    if (!connect) {
+    if (!isConnect) {
       return;
     }
     stompClient.connect({}, () => {
@@ -31,7 +31,7 @@ const App = () => {
         setChatMessages((prev) => [...prev, JSON.stringify(a)]);
       });
     });
-  }, [chatMessages, connect]);
+  }, [chatMessages, isConnect]);
 
   return (
     <div>
