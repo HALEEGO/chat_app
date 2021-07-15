@@ -1,78 +1,39 @@
-import React, { useState } from 'react';
-import * as StompJs from '@stomp/stompjs';
-
-const client = new StompJs.Client({
-  brokerURL: '/gs-guide-websocket',
-  reconnectDelay: 5000,
-  heartbeatIncoming: 4000,
-  heartbeatOutgoing: 4000,
-});
+import React, { useState, useEffect } from 'react';
+import Stomp from 'stompjs';
+import SockJS from 'sockjs-client';
 
 // const { Stomp } = StompJs;
 // client.onConnect = (frame) => {
 //   let client = Stomp.over(() => new WebSocket('/gs-guide-websocket'));
 // };
+let stompClient: Stomp.Client;
 
 const App = () => {
-  const [chatMessages, setChatMessages] = useState([]);
+  const [chatMessages, setChatMessages] = useState(['hello', 'nice']);
   const [message, setMessage] = useState('');
-
-  // const subscribe = () => {
-  //   client.current.subscribe(`/sub/chat/${ROOM_SEQ}`, ({ body }) => {
-  //     setChatMessages((_chatMessages) => [..._chatMessages, JSON.parse(body)]);
-  //   });
-  // };
-  // const connect = () => {
-  //   client.current = new StompJs.Client({
-  //     // brokerURL: 'ws://localhost:8080/gs-guide-websocket', // 웹소켓 서버로 직접 접속
-  //     webSocketFactory: () => new SockJS('/ws-stomp'), // proxy를 통한 접속
-  //     connectHeaders: {
-  //       'auth-token': 'spring-chat-auth-token',
-  //     },
-  //     reconnectDelay: 5000,
-  //     heartbeatIncoming: 4000,
-  //     heartbeatOutgoing: 4000,
-  //     onConnect: () => {
-  //       subscribe();
-  //     },
-  //   });
-
-  //   client.current.activate();
-  // };
-
-  // const disconnect = () => {
-  //   client.current.deactivate();
-  // };
-
-  // const publish = (message) => {
-  //   if (!client.current.connected) {
-  //     return;
-  //   }
-
-  //   client.current.publish({
-  //     destination: '/pub/chat',
-  //     body: JSON.stringify({ roomSeq: ROOM_SEQ, message }),
-  //   });
-
-  //   setMessage('');
-  // };
-
-  // useEffect(() => {
-  //   connect();
-
-  //   return () => disconnect();
-  // }, []);
+  const [isConnect, setConnect] = useState(false);
 
   function onConnect() {
-    // eslint-disable-next-line no-unused-vars
-    const subscription = client.subscribe('/topic/greetings', (greeting) => {
-      setChatMessages(JSON.parse(greeting.body).content);
-    });
+    const sockJS = new SockJS('http://localhost:8080/chat');
+    stompClient = Stomp.over(sockJS);
+    setConnect(true);
   }
 
   function sendName() {
-    client.publish({ destination: '/app/hello', body: JSON.stringify(message) });
+    stompClient.send('/app/hello', {}, message);
   }
+
+  useEffect(() => {
+    if (!isConnect) {
+      return;
+    }
+    stompClient.connect({}, () => {
+      stompClient.subscribe('/topic/greetings', (greeting) => {
+        const newMessage = greeting.body;
+        setChatMessages((prev) => [...prev, newMessage]);
+      });
+    });
+  }, [chatMessages, isConnect]);
 
   return (
     <div>
@@ -82,19 +43,13 @@ const App = () => {
             type="button"
             onClick={() => {
               onConnect();
-              console.log('hello');
             }}
           >
             connect
           </button>
         </li>
         <li>
-          <button
-            type="button"
-            onClick={() => {
-              console.log('bye');
-            }}
-          >
+          <button type="button" onClick={() => {}}>
             disconnect
           </button>
         </li>
@@ -113,8 +68,9 @@ const App = () => {
       </div>
       <div>출력화면</div>
       <ul>
-        {chatMessages.map((result) => (
-          <li>{result}</li>
+        {chatMessages.map((result, i) => (
+          // eslint-disable-next-line react/no-array-index-key
+          <li key={i}>{result}</li>
         ))}
       </ul>
     </div>
