@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+// import { LocationDescriptorObject } from 'history/index.d';
 // import { useLocation } from 'react-router';
 import Stomp from 'stompjs';
 import SockJS from 'sockjs-client';
@@ -12,6 +13,7 @@ const Talk = (props: any) => {
   // const location = useLocation();
   // const name = location.state;
   console.log(props);
+  const { location } = props;
   useEffect(() => {
     stompClient.connect({}, () => {
       stompClient.subscribe('/topic/greetings', (greeting) => {
@@ -23,7 +25,7 @@ const Talk = (props: any) => {
     // stompClient.send('/app/hello', {}, );
   });
 
-  return <div>씨발 왜안댐{props.location.state}</div>;
+  return <div>씨발 왜안댐{location.state.hi}</div>;
 };
 
 export default Talk;
