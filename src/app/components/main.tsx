@@ -32,7 +32,7 @@ function Main() {
       {makeRoom ? (
         <div>
           <input type="text" placeholder="방 번호 입력" value={roomID} onChange={(e) => setRoomID(e.target.value)} />
-          <Link to={{ pathname: '/talk', state: { hi: name } }}>
+          <Link to={{ pathname: '/talk', state: { hi: name, number: roomID } }}>
             <button
               type="button"
               onClick={() => {
