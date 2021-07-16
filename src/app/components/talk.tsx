@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import Stomp from 'stompjs';
 import SockJS from 'sockjs-client';
-import sjIP from '../utils/constant/server';
+// import sjIP from '../utils/constant/server';
+let stompClient: Stomp.Client;
+let sockJS: WebSocket;
 
 const Talk = (props: any) => {
-  const sockJS = new SockJS(`${sjIP}/chat`);
-  const stompClient = Stomp.over(sockJS);
   const [message, setMessage] = useState('');
   const { location } = props;
 
@@ -18,6 +18,8 @@ const Talk = (props: any) => {
   }
 
   useEffect(() => {
+    sockJS = new SockJS(`http://localhost:8080/chat`);
+    stompClient = Stomp.over(sockJS);
     stompClient.connect({}, () => {
       stompClient.subscribe(`/topic/greetings`, (greeting) => {
         const newMessage = JSON.parse(greeting.body); // roomID, userName, meessageType, moveType, role, context
