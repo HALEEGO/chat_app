@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 import Main from './app/components/main';
-import Talk from './app/components/talk';
+import Talk from './app/components/talk/talk';
 
 const App = () => (
   <Router>
