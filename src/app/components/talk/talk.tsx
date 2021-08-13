@@ -1,39 +1,39 @@
 import React, { useState, useEffect } from 'react';
 import Stomp from 'stompjs';
 import SockJS from 'sockjs-client';
-import sjIP from '../../utils/constant/server';
 import Chat from './components/chatlog';
 import Msg from './components/chatbox';
 import Member from './components/participantList';
+// import sjIP from '../utils/constant/server';
+let stompClient: Stomp.Client;
+let sockJS: WebSocket;
+
+
 
 const Talk = (props: any) => {
-  const sockJS = new SockJS(`${sjIP}/chat`);
-  const stompClient = Stomp.over(sockJS);
-  // 웹소켓 연결할 주소를 stompClient 변수에 넣어둠
-  const [click, setClick] = useState(1);
+
   const [message, setMessage] = useState('');
   const { location } = props;
 
-  function clicking() {
-    setClick((prior) => prior + 1);
-  }
-
   function sendInfo() {
     stompClient.send(
-      '/app/usermove',
+      '/app/hello',
       {},
-      JSON.stringify({ roomID: location.state.number, userName: location.state.hi }),
+      JSON.stringify({ roomID: location.state.number, user: { userName: location.state.hi } }),
     );
   }
 
   useEffect(() => {
+    sockJS = new SockJS(`http://localhost:8080/chat`);
+    stompClient = Stomp.over(sockJS);
     stompClient.connect({}, () => {
-      stompClient.subscribe(`/topic/usermove/${location.state.number}/HOST`, (greeting) => {
+      stompClient.subscribe(`/topic/greetings`, (greeting) => {
         const newMessage = JSON.parse(greeting.body); // roomID, userName, meessageType, moveType, role, context
         setMessage(newMessage.roomID);
       });
+      sendInfo();
     });
-  }, [click]);
+  }, []);
 
   return (
     <div>
@@ -41,7 +41,6 @@ const Talk = (props: any) => {
         type="button"
         onClick={() => {
           sendInfo();
-          clicking();
         }}
       >
         send
@@ -56,4 +55,4 @@ const Talk = (props: any) => {
   );
 };
 
-export default Talk;
+export default React.memo(Talk);
