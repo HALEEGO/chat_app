@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import Stomp from 'stompjs';
 import SockJS from 'sockjs-client';
-import sjIP from '../utils/constant/server';
+import sjIP from '../../utils/constant/server';
+import Chat from './components/chatlog';
+import Msg from './components/chatbox';
+import Member from './components/participantList';
 
 const Talk = (props: any) => {
-  const [click, setClick] = useState(1);
   const sockJS = new SockJS(`${sjIP}/chat`);
   const stompClient = Stomp.over(sockJS);
+  // 웹소켓 연결할 주소를 stompClient 변수에 넣어둠
+  const [click, setClick] = useState(1);
   const [message, setMessage] = useState('');
   const { location } = props;
 
@@ -43,6 +47,11 @@ const Talk = (props: any) => {
         send
       </button>
       메시지: {message}
+      <h1>Byung50s TalkRoom</h1>
+      {Member()}
+      {Chat()}
+      <h1>(❁´o`❁)</h1>
+      {Msg()}
     </div>
   );
 };
