@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Stomp from 'stompjs';
 import SockJS from 'sockjs-client';
-import sjIP from '../../utils/constant/server';
 import Chat from './components/chatlog';
 import Msg from './components/chatbox';
 import Member from './components/participantList';
@@ -13,7 +12,6 @@ let sockJS: WebSocket;
 
 const Talk = (props: any) => {
 
-  const [click, setClick] = useState(1);
   const [message, setMessage] = useState('');
   const { location } = props;
 
